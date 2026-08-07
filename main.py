@@ -64,7 +64,7 @@ def is_banned(user_id):
 
 
 broadcast_mode = set()
-
+maintenance_mode = False
 async def is_member(bot, user_id):
     try:
         member = await bot.get_chat_member(CHANNEL_USERNAME, user_id)
@@ -75,7 +75,11 @@ async def is_member(bot, user_id):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_user(update.effective_user.id)
-
+    if maintenance_mode and update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text(
+            "🛠 ربات در حال تعمیر و بروزرسانی است.\nلطفاً بعداً دوباره تلاش کنید."
+        )
+        return
     if is_banned(update.effective_user.id):
         await update.message.reply_text(
             "⛔ شما از استفاده از این ربات مسدود شده‌اید."
@@ -121,9 +125,10 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     keyboard = [
-        [InlineKeyboardButton("👥 تعداد کاربران", callback_data="user_count")],
-        [InlineKeyboardButton("📢 ارسال همگانی", callback_data="broadcast")]
-    ]
+    [InlineKeyboardButton("👥 تعداد کاربران", callback_data="user_count")],
+    [InlineKeyboardButton("📢 ارسال همگانی", callback_data="broadcast")],
+    [InlineKeyboardButton("🛠 حالت تعمیر", callback_data="maintenance")]
+]
 
     await update.message.reply_text(
         "🎛 پنل مدیریت",
