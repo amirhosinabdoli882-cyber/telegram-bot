@@ -164,10 +164,25 @@ async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     broadcast_mode.remove(update.effective_user.id)
     await update.message.reply_text("✅ پیام برای همه ارسال شد.")
-
-
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if len(context.args) != 1:
+        await update.message.reply_text("استفاده:\n/ban USER_ID")
+        return
+
+    try:
+        user_id = int(context.args[0])
+    except ValueError:
+        await update.message.reply_text("❌ آیدی نامعتبر است.")
+        return
+
+    ban_user(user_id)
+    await update.message.reply_text("✅ کاربر مسدود شد.")
+
+
+async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
@@ -183,18 +198,7 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     unban_user(user_id)
     await update.message.reply_text("✅ کاربر از بن خارج شد.")
-    if update.effective_user.id != ADMIN_ID:
-        return
 
-    if len(context.args) != 1:
-        await update.message.reply_text("استفاده:\n/ban USER_ID")
-        return
-
-    try:
-        user_id = int(context.args[0])
-    except ValueError:
-        await update.message.reply_text("❌ آیدی نامعتبر است.")
-        return
 
     ban_user(user_id)
     await update.message.reply_text("✅ کاربر مسدود شد.")
