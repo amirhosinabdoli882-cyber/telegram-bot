@@ -204,15 +204,21 @@ async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     unban_user(user_id)
     await update.message.reply_text("✅ کاربر از بن خارج شد.")
 
-
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("panel", panel))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
+
 app.add_handler(CallbackQueryHandler(check, pattern="check"))
-app.add_handler(CallbackQueryHandler(admin_buttons, pattern="^(user_count|broadcast|maintenance)$"))
+
+app.add_handler(
+    CallbackQueryHandler(
+        admin_buttons,
+        pattern="^(user_count|broadcast|maintenance)$"
+    )
+)
 
 app.add_handler(MessageHandler(filters.TEXT, broadcast_message))
 
