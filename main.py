@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -72,6 +73,21 @@ async def is_member(bot, user_id):
         return member.status in ["member", "administrator", "creator"]
     except:
         return False
+async def delete_luck_game(context, chat_id, message_id):
+    await asyncio.sleep(60)
+
+    if chat_id in gamble_games:
+        del gamble_games[chat_id]
+
+        try:
+            await context.bot.delete_message(
+                chat_id=chat_id,
+                message_id=message_id
+            )
+        except:
+            pass
+
+
 async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.type not in ["group", "supergroup"]:
         return
@@ -96,13 +112,20 @@ async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
             callback_data=f"luck_accept_{user.id}"
         )]
     ]
-    await update.message.reply_text(
+
+    message = await update.message.reply_text(
         f"🍀 {user.first_name} بازی شانس پیشنهاد داد!\n\n"
-        "چه کسی قبول می‌کند؟",
+        "⏳ فقط ۱ دقیقه فرصت برای قبول کردن دارید.",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-
+    context.application.create_task(
+        delete_luck_game(
+            context,
+            chat_id,
+            message.message_id
+        )
+    )
 async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
