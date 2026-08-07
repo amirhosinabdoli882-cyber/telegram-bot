@@ -96,13 +96,14 @@ async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
             callback_data=f"luck_accept_{user.id}"
         )]
     ]
-
     await update.message.reply_text(
         f"🍀 {user.first_name} بازی شانس پیشنهاد داد!\n\n"
         "چه کسی قبول می‌کند؟",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
- async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+
+async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
