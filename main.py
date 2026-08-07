@@ -95,7 +95,7 @@ async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "user_count":
         await query.edit_message_text(
-            f"👥 تعداد کاربران: {len(users)}"
+            f"👥 تعداد کاربران: {len(get_users())}"
         )
 
     elif query.data == "broadcast":
