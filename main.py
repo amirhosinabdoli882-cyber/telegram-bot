@@ -126,6 +126,8 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global maintenance_mode
+
     query = update.callback_query
     await query.answer()
 
@@ -143,9 +145,8 @@ async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(
             "📢 پیام همگانی را ارسال کنید:"
         )
-            elif query.data == "maintenance":
-        global maintenance_mode
 
+    elif query.data == "maintenance":
         maintenance_mode = not maintenance_mode
 
         if maintenance_mode:
