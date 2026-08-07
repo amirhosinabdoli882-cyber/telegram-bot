@@ -70,12 +70,12 @@ async def is_member(bot, user_id):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):  
     save_user(update.effective_user.id)
-        if is_banned(update.effective_user.id):
+    keyboard = [
+           if is_banned(update.effective_user.id):
         await update.message.reply_text(
             "⛔ شما از استفاده از این ربات مسدود شده‌اید."
         )
-        return
-    keyboard = [
+        return 
         [InlineKeyboardButton("📢 عضویت در کانال", url="https://t.me/Axyoy")],
         [InlineKeyboardButton("✅ عضو شدم", callback_data="check")]
     ]
