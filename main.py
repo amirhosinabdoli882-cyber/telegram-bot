@@ -89,6 +89,9 @@ async def delete_luck_game(context, chat_id, message_id):
 
 
 async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if maintenance_mode and update.effective_user.id != ADMIN_ID:
+        return
+
     if update.effective_chat.type not in ["group", "supergroup"]:
         return
 
@@ -127,6 +130,12 @@ async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     )
 async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if maintenance_mode and update.effective_user.id != ADMIN_ID:
+        await update.callback_query.answer(
+            "🛠 ربات در حال تعمیر است.",
+            show_alert=True
+        )
+        return    
     query = update.callback_query
     await query.answer()
 
