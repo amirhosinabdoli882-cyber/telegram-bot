@@ -6,10 +6,12 @@ from telegram.ext import (
     CallbackQueryHandler,
     ContextTypes,
 )
+from telegram.ext import MessageHandler, filters
 
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_USERNAME = "@Axyoy"
 ADMIN_ID = 6888248201
+broadcast_mode = set()
 users = set()
 
 async def is_member(bot, user_id):
@@ -61,8 +63,6 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🎛 پنل مدیریت",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
-
-
 async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -75,12 +75,36 @@ async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"👥 تعداد کاربران: {len(users)}"
         )
 
-app = ApplicationBuilder().token(TOKEN).build()
+    elif query.data == "broadcast":
+        broadcast_mode.add(query.from_user.id)
 
+        await query.edit_message_text(
+            "📢 پیام همگانی را ارسال کنید:"
+        )
+async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in broadcast_mode:
+        return
+
+    text = update.message.text
+
+    for user_id in users:
+        try:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=text
+            )
+        except:
+            pass
+
+    broadcast_mode.remove(update.effective_user.id)
+
+    await update.message.reply_text("✅ پیام برای همه ارسال شد.")
+app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(check, pattern="check"))
 app.add_handler(CommandHandler("panel", panel))
 app.add_handler(CallbackQueryHandler(admin_buttons, pattern="^(user_count|broadcast)$"))
+app.add_handler(MessageHandler(filters.TEXT, broadcast_message))
 
 print("Bot is running...")
 app.run_polling()
