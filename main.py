@@ -54,3 +54,31 @@ app.add_handler(CallbackQueryHandler(check, pattern="check"))
 
 print("Bot is running...")
 app.run_polling()
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ContextTypes
+
+ADMIN_ID = 6888248201
+
+async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("⛔ دسترسی ندارید")
+        return
+
+    keyboard = [
+        [InlineKeyboardButton("📢 ارسال همگانی", callback_data="broadcast")],
+        [InlineKeyboardButton("👥 کاربران", callback_data="users")],
+        [InlineKeyboardButton("⚙️ تنظیمات", callback_data="settings")],
+    ]
+
+    await update.message.reply_text(
+        "🎛 پنل مدیریت:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+   async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "users":
+        await query.edit_message_text("تعداد کاربران: ...")
+
+    elif query.data == "settings":
+        await query.edit_message_text("تنظیمات بات") 
