@@ -133,7 +133,7 @@ async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = update.message.text
 
-    for user_id in users:
+    for user_id in get_users():
         try:
             await context.bot.send_message(
                 chat_id=user_id,
@@ -143,8 +143,8 @@ async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
 
     broadcast_mode.remove(update.effective_user.id)
-
     await update.message.reply_text("✅ پیام برای همه ارسال شد.")
+    
     async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
