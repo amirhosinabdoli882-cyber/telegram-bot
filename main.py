@@ -65,14 +65,106 @@ def is_banned(user_id):
 
 broadcast_mode = set()
 maintenance_mode = False
+gamble_games = {}
 async def is_member(bot, user_id):
     try:
         member = await bot.get_chat_member(CHANNEL_USERNAME, user_id)
         return member.status in ["member", "administrator", "creator"]
     except:
         return False
+async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat.type not in ["group", "supergroup"]:
+        return
 
+    user = update.effective_user
+    chat_id = update.effective_chat.id
 
+    if chat_id in gamble_games:
+        await update.message.reply_text(
+            "🍀 یک بازی شانس همین الان در این گروه در حال انتظار است."
+        )
+        return
+
+    gamble_games[chat_id] = {
+        "creator_id": user.id,
+        "creator_name": user.first_name
+    }
+
+    keyboard = [
+        [InlineKeyboardButton(
+            "🎲 قبول بازی",
+            callback_data=f"luck_accept_{user.id}"
+        )]
+    ]
+
+    await update.message.reply_text(
+        f"🍀 {user.first_name} بازی شانس پیشنهاد داد!\n\n"
+        "چه کسی قبول می‌کند؟",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    chat_id = query.message.chat_id
+    accepter = query.from_user
+
+    if chat_id not in gamble_games:
+        await query.answer(
+            "❌ این بازی دیگر فعال نیست.",
+            show_alert=True
+        )
+        return
+
+    game = gamble_games[chat_id]
+
+    if accepter.id == game["creator_id"]:
+        await query.answer(
+            "❌ خودت نمی‌تونی بازی خودت رو قبول کنی!",
+            show_alert=True
+        )
+        return
+
+    creator_name = game["creator_name"]
+
+    await query.edit_message_text(
+        f"🍀 بازی شانس شروع شد!\n\n"
+        f"👤 {creator_name}\n"
+        f"👤 {accepter.first_name}\n\n"
+        "🎲 تاس‌ها در حال پرتاب هستند..."
+    )
+
+    creator_dice = await context.bot.send_dice(
+        chat_id=chat_id,
+        emoji="🎲"
+    )
+
+    accepter_dice = await context.bot.send_dice(
+        chat_id=chat_id,
+        emoji="🎲"
+    )
+
+    creator_score = creator_dice.dice.value
+    accepter_score = accepter_dice.dice.value
+
+    if creator_score > accepter_score:
+        result = f"🏆 {creator_name} برنده شد!"
+    elif accepter_score > creator_score:
+        result = f"🏆 {accepter.first_name} برنده شد!"
+    else:
+        result = "🤝 مساوی شد!"
+
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=(
+            f"🍀 نتیجه بازی شانس\n\n"
+            f"👤 {creator_name}: 🎲 {creator_score}\n"
+            f"👤 {accepter.first_name}: 🎲 {accepter_score}\n\n"
+            f"{result}"
+        )
+    )
+
+    del gamble_games[chat_id]
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_user(update.effective_user.id)
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
@@ -217,14 +309,24 @@ app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
 
 app.add_handler(CallbackQueryHandler(check, pattern="check"))
-
+app.add_handler(
+    CallbackQueryHandler(
+        luck_accept,
+        pattern="^luck_accept_"
+    )
+)
 app.add_handler(
     CallbackQueryHandler(
         admin_buttons,
         pattern="^(user_count|broadcast|maintenance)$"
     )
 )
-
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & filters.Regex(r"^شانس$"),
+        luck_game
+    )
+)
 app.add_handler(MessageHandler(filters.TEXT, broadcast_message))
 
 print("Bot is running...")
