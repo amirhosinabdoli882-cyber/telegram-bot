@@ -48,7 +48,12 @@ def ban_user(user_id):
         (user_id,)
     )
     conn.commit()
-
+def unban_user(user_id):
+    cursor.execute(
+        "DELETE FROM banned_users WHERE user_id=?",
+        (user_id,)
+    )
+    conn.commit()
 
 def is_banned(user_id):
     cursor.execute(
@@ -162,6 +167,22 @@ async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if len(context.args) != 1:
+        await update.message.reply_text("استفاده:\n/unban USER_ID")
+        return
+
+    try:
+        user_id = int(context.args[0])
+    except ValueError:
+        await update.message.reply_text("❌ آیدی نامعتبر است.")
+        return
+
+    unban_user(user_id)
+    await update.message.reply_text("✅ کاربر از بن خارج شد.")
     if update.effective_user.id != ADMIN_ID:
         return
 
@@ -182,7 +203,7 @@ app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("panel", panel))
 app.add_handler(CommandHandler("ban", ban))
-
+app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CallbackQueryHandler(check, pattern="check"))
 app.add_handler(CallbackQueryHandler(admin_buttons, pattern="^(user_count|broadcast)$"))
 
