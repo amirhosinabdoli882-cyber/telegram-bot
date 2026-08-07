@@ -200,8 +200,6 @@ async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ کاربر از بن خارج شد.")
 
 
-    ban_user(user_id)
-    await update.message.reply_text("✅ کاربر مسدود شد.")
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
