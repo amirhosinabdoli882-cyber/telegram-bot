@@ -31,10 +31,27 @@ def save_user(user_id):
     )
     conn.commit()
 
-
 def get_users():
     cursor.execute("SELECT user_id FROM users")
     return [row[0] for row in cursor.fetchall()]
+
+
+def ban_user(user_id):
+    cursor.execute(
+        "INSERT OR IGNORE INTO banned_users (user_id) VALUES (?)",
+        (user_id,)
+    )
+    conn.commit()
+
+
+def is_banned(user_id):
+    cursor.execute(
+        "SELECT 1 FROM banned_users WHERE user_id=?",
+        (user_id,)
+    )
+    return cursor.fetchone() is not None
+
+
 broadcast_mode = set()
 
 async def is_member(bot, user_id):
@@ -122,11 +139,31 @@ async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     broadcast_mode.remove(update.effective_user.id)
 
     await update.message.reply_text("✅ پیام برای همه ارسال شد.")
+    async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if len(context.args) != 1:
+        await update.message.reply_text("استفاده:\n/ban USER_ID")
+        return
+
+    try:
+        user_id = int(context.args[0])
+    except ValueError:
+        await update.message.reply_text("❌ آیدی نامعتبر است.")
+        return
+
+    ban_user(user_id)
+    await update.message.reply_text("✅ کاربر مسدود شد.")
 app = ApplicationBuilder().token(TOKEN).build()
+
 app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(check, pattern="check"))
 app.add_handler(CommandHandler("panel", panel))
+app.add_handler(CommandHandler("ban", ban))
+
+app.add_handler(CallbackQueryHandler(check, pattern="check"))
 app.add_handler(CallbackQueryHandler(admin_buttons, pattern="^(user_count|broadcast)$"))
+
 app.add_handler(MessageHandler(filters.TEXT, broadcast_message))
 
 print("Bot is running...")
