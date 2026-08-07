@@ -144,7 +144,6 @@ async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     broadcast_mode.remove(update.effective_user.id)
     await update.message.reply_text("✅ پیام برای همه ارسال شد.")
-    
     async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
