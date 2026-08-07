@@ -1,4 +1,5 @@
 import os
+import sqlite3
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -11,8 +12,30 @@ from telegram.ext import MessageHandler, filters
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_USERNAME = "@Axyoy"
 ADMIN_ID = 6888248201
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY
+)
+""")
+
+conn.commit()
+
+
+def save_user(user_id):
+    cursor.execute(
+        "INSERT OR IGNORE INTO users (user_id) VALUES (?)",
+        (user_id,)
+    )
+    conn.commit()
+
+
+def get_users():
+    cursor.execute("SELECT user_id FROM users")
+    return [row[0] for row in cursor.fetchall()]
 broadcast_mode = set()
-users = set()
 
 async def is_member(bot, user_id):
     try:
@@ -23,7 +46,7 @@ async def is_member(bot, user_id):
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):  
-    users.add(update.effective_user.id)
+    save_user(update.effective_user.id)
     keyboard = [
         [InlineKeyboardButton("📢 عضویت در کانال", url="https://t.me/Axyoy")],
         [InlineKeyboardButton("✅ عضو شدم", callback_data="check")]
