@@ -98,16 +98,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "سلام 👋\n\nلطفاً ابتدا عضو کانال شوید.",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
-
-    if await is_member(context.bot, update.effective_user.id):
-        await update.message.reply_text("✅ خوش اومدی، عضویتت تأیید شد.")
-    else:
-        await update.message.reply_text(
-            "سلام 👋\n\nلطفاً ابتدا عضو کانال شوید.",
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
-
-
+        
 async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -152,6 +143,19 @@ async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(
             "📢 پیام همگانی را ارسال کنید:"
         )
+            elif query.data == "maintenance":
+        global maintenance_mode
+
+        maintenance_mode = not maintenance_mode
+
+        if maintenance_mode:
+            await query.edit_message_text(
+                "🛠 حالت تعمیر فعال شد."
+            )
+        else:
+            await query.edit_message_text(
+                "✅ حالت تعمیر خاموش شد."
+            )
 async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in broadcast_mode:
         return
