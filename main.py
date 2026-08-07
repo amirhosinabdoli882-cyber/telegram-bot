@@ -9,7 +9,8 @@ from telegram.ext import (
 
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_USERNAME = "@Axyoy"
-
+ADMIN_ID = 6888248201
+users = set()
 
 async def is_member(bot, user_id):
     try:
@@ -19,7 +20,8 @@ async def is_member(bot, user_id):
         return False
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):  
+    users.add(update.effective_user.id)
     keyboard = [
         [InlineKeyboardButton("📢 عضویت در کانال", url="https://t.me/Axyoy")],
         [InlineKeyboardButton("✅ عضو شدم", callback_data="check")]
@@ -45,12 +47,40 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "❌ هنوز عضو کانال نشدی.",
             show_alert=True
         )
+async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("⛔ دسترسی ندارید")
+        return
 
+    keyboard = [
+        [InlineKeyboardButton("👥 تعداد کاربران", callback_data="user_count")],
+        [InlineKeyboardButton("📢 ارسال همگانی", callback_data="broadcast")]
+    ]
+
+    await update.message.reply_text(
+        "🎛 پنل مدیریت",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+
+async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.from_user.id != ADMIN_ID:
+        return
+
+    if query.data == "user_count":
+        await query.edit_message_text(
+            f"👥 تعداد کاربران: {len(users)}"
+        )
 
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(check, pattern="check"))
+app.add_handler(CommandHandler("panel", panel))
+app.add_handler(CallbackQueryHandler(admin_buttons, pattern="^(user_count|broadcast)$"))
 
 print("Bot is running...")
 app.run_polling()
