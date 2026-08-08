@@ -1,4 +1,4 @@
-import os
+import o
 import sqlite3
 import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -100,58 +100,20 @@ async def delete_luck_game(context, chat_id, message_id):
         except:
             pass
 
-async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if maintenance_mode and update.effective_user.id != ADMIN_ID:
-        return
-
-    if update.effective_chat.type not in ["group", "supergroup"]:
-        return
-
-    user = update.effective_user
-    chat_id = update.effective_chat.id
-
-    if user.id not in get_users():
-        await update.message.reply_text(
-            "⛔ برای استفاده از بازی شانس، ابتدا ربات را استارت کنید."
-        )
-        return
-    if not await is_member(context.bot, user.id):
-        await update.message.reply_text(
-            "⛔ برای بازی شانس باید ابتدا عضو کانال شوید."
-        )
-        return
-    if chat_id in gamble_games:
-        await update.message.reply_text(
-            "🍀 یک بازی شانس همین الان در این گروه در حال انتظار است."
-        )
-        return
-
-    message = await update.message.reply_text(
-        f"🍀 {user.first_name} بازی شانس پیشنهاد داد!\n\n"
-        "⏳ فقط ۱ دقیقه فرصت برای قبول کردن دارید.",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-
-    context.application.create_task(
-        delete_luck_game(
-            context,
-            chat_id,
-            message.message_id
-        )
-    )
 async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
         await update.callback_query.answer(
             "🛠 ربات در حال تعمیر است.",
             show_alert=True
         )
-        return    
+        return
+
     query = update.callback_query
     await query.answer()
 
     chat_id = query.message.chat_id
     accepter = query.from_user
-    
+
     if accepter.id not in get_users():
         await query.answer(
             "⛔ ابتدا ربات را استارت کنید.",
@@ -201,7 +163,7 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
         emoji="🎲"
     )
 
-        creator_score = creator_dice.dice.value
+    creator_score = creator_dice.dice.value
     accepter_score = accepter_dice.dice.value
 
     if creator_score > accepter_score:
@@ -236,24 +198,6 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     creator_points = get_points(game["creator_id"])
     accepter_points = get_points(accepter.id)
 
-        result = (
-            f"🏆 {accepter.first_name} برنده شد!\n"
-            f"🎯 {accepter.first_name}: +3 امتیاز\n"
-            f"💀 {creator_name}: -2 امتیاز"
-        )
-
-    else:
-        change_points(game["creator_id"], 1)
-        change_points(accepter.id, 1)
-
-        result = (
-            "🤝 مساوی شد!\n"
-            "🎯 هر دو بازیکن: +1 امتیاز"
-        )
-
-    creator_points = get_points(game["creator_id"])
-    accepter_points = get_points(accepter.id)
-
     await context.bot.send_message(
         chat_id=chat_id,
         text=(
@@ -267,6 +211,7 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     del gamble_games[chat_id]
+    
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_user(update.effective_user.id)
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
