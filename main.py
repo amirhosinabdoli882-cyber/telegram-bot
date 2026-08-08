@@ -343,7 +343,7 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         update_game_stats(game["creator_id"], "win")
         update_game_stats(accepter.id, "loss")
-
+        
         result = (
             f"🏆 {creator_name} برنده شد!\n"
             f"🎯 {creator_name}: +3 امتیاز\n"
