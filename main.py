@@ -106,7 +106,25 @@ async def delete_luck_game(context, chat_id, message_id):
             )
         except:
             pass
+def download_instagram(url):
+    temp_dir = tempfile.mkdtemp()
 
+    ydl_opts = {
+        "outtmpl": os.path.join(temp_dir, "%(id)s.%(ext)s"),
+        "format": "bestvideo+bestaudio/best",
+        "merge_output_format": "mp4",
+        "noplaylist": True,
+        "quiet": True,
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=True)
+        video_path = ydl.prepare_filename(info)
+
+        if not video_path.endswith(".mp4"):
+            video_path = os.path.splitext(video_path)[0] + ".mp4"
+
+    return video_path, temp_dir
 async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
         await update.callback_query.answer(
