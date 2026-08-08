@@ -554,7 +554,7 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🎛 پنل مدیریت",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
- async def menu_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def menu_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
