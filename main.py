@@ -1,9 +1,9 @@
-import os
+import 
 import sqlite3
 import asyncio
-import os
-import sqlite3
-import asyncio
+import re
+import tempfile
+import yt_dlp
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -148,15 +148,17 @@ async def instagram_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         video_path, temp_dir = download_instagram(url)
 
-        await update.message.reply_video(
-            video=open(video_path, "rb"),
-            caption="🎬 ویدئو"
-        )
+        with open(video_path, "rb") as video:
+            await update.message.reply_video(
+                video=video,
+                caption="🎬 ویدئو"
+            )
 
     except Exception as e:
-    await update.message.reply_text(
-        f"❌ خطا:\n{str(e)[:3000]}"
-    )
+        await update.message.reply_text(
+            f"❌ خطا:\n{str(e)[:3000]}"
+        )
+
     finally:
         if temp_dir:
             import shutil
@@ -165,7 +167,7 @@ async def instagram_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             await status.delete()
         except:
-            pass    
+            pass
 async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
         await update.callback_query.answer(
