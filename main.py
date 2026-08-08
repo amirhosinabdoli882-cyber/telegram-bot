@@ -125,6 +125,49 @@ def download_instagram(url):
             video_path = os.path.splitext(video_path)[0] + ".mp4"
 
     return video_path, temp_dir
+async def instagram_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.strip()
+
+    match = re.search(
+        r"https?://(?:www\.)?instagram\.com/(?:reel|p|tv)/[^\s]+",
+        text
+    )
+
+    if not match:
+        return
+
+    url = match.group(0)
+
+    status = await update.message.reply_text(
+        "⏳ در حال دریافت ویدئو..."
+    )
+
+    video_path = None
+    temp_dir = None
+
+    try:
+        video_path, temp_dir = download_instagram(url)
+
+        await update.message.reply_video(
+            video=open(video_path, "rb"),
+            caption="🎬 ویدئو"
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            "❌ دریافت ویدئو انجام نشد.\n"
+            "ممکنه لینک خصوصی یا نامعتبر باشه."
+        )
+
+    finally:
+        if temp_dir:
+            import shutil
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+        try:
+            await status.delete()
+        except:
+            pass    
 async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
         await update.callback_query.answer(
@@ -490,24 +533,35 @@ app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
 
 app.add_handler(CallbackQueryHandler(check, pattern="check"))
+
 app.add_handler(
     CallbackQueryHandler(
         luck_accept,
         pattern="^luck_accept_"
     )
 )
+
 app.add_handler(
     CallbackQueryHandler(
         admin_buttons,
         pattern="^(user_count|broadcast|maintenance)$"
     )
 )
+
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & filters.Regex(r"https?://(?:www\.)?instagram\.com/"),
+        instagram_handler
+    )
+)
+
 app.add_handler(
     MessageHandler(
         filters.TEXT & filters.Regex(r"^شانس$"),
         luck_game
     )
 )
+
 app.add_handler(MessageHandler(filters.TEXT, broadcast_message))
 
 print("Bot is running...")
