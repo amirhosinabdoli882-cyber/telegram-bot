@@ -154,6 +154,32 @@ async def instagram_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 caption="🎬 ویدئو"
             )
 
+        # استخراج صدای ویدئو
+        audio_path = os.path.splitext(video_path)[0] + ".mp3"
+
+        audio_opts = {
+            "format": "bestaudio/best",
+            "outtmpl": audio_path,
+            "noplaylist": True,
+            "quiet": True,
+            "postprocessors": [
+                {
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "192",
+                }
+            ],
+        }
+
+        with yt_dlp.YoutubeDL(audio_opts) as ydl:
+            ydl.download([url])
+
+        with open(audio_path, "rb") as audio:
+            await update.message.reply_audio(
+                audio=audio,
+                caption="🎵 صدای ویدئو"
+            )
+
     except Exception as e:
         await update.message.reply_text(
             f"❌ خطا:\n{str(e)[:3000]}"
