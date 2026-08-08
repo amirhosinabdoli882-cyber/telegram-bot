@@ -548,9 +548,45 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🎛 پنل مدیریت",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
-async def menu_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+ async def menu_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
+    if query.data == "profile":
+        user = query.from_user
+
+        points = get_points(user.id)
+        games, wins, losses, draws = get_game_stats(user.id)
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM users
+            WHERE points > ?
+        """, (points,))
+
+        rank = cursor.fetchone()[0] + 1
+
+        keyboard = [
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
+                    callback_data="back_menu"
+                )
+            ]
+        ]
+
+        await query.edit_message_text(
+            f"👤 پروفایل شما\n\n"
+            f"🆔 آیدی: {user.id}\n"
+            f"🎯 امتیاز: {points}\n"
+            f"🏆 رتبه: {rank}\n\n"
+            f"🎲 تعداد بازی: {games}\n"
+            f"🏆 برد: {wins}\n"
+            f"💀 باخت: {losses}\n"
+            f"🤝 مساوی: {draws}",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        return
 
     if query.data == "instagram_help":
         keyboard = [
@@ -611,7 +647,7 @@ async def menu_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     elif query.data == "back_menu":
-        await main_menu(update, context)    
+        await main_menu(update, context)   
 async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global maintenance_mode
 
