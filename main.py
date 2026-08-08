@@ -871,7 +871,7 @@ app.add_handler(
 app.add_handler(
     CallbackQueryHandler(
         menu_buttons,
-        pattern="^(instagram_help|show_leaderboard|back_menu)$"
+        pattern="^(profile|instagram_help|show_leaderboard|back_menu)$"
     )
 )
 app.add_handler(MessageHandler(filters.TEXT, broadcast_message))
