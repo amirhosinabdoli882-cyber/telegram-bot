@@ -424,10 +424,46 @@ async def score(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👤 {user.first_name}\n"
         f"🏆 امتیاز: {points}"
     )
+async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    cursor.execute("""
+        SELECT user_id, points
+        FROM users
+        ORDER BY points DESC
+        LIMIT 30
+    """)
+
+    users = cursor.fetchall()
+
+    if not users:
+        await update.message.reply_text(
+            "🏆 هنوز کسی امتیازی ندارد."
+        )
+        return
+
+    text = "🏆 جدول برترین بازیکنان شانس\n\n"
+
+    medals = ["🥇", "🥈", "🥉"]
+
+    for index, (user_id, points) in enumerate(users, start=1):
+        try:
+            member = await context.bot.get_chat_member(
+                update.effective_chat.id,
+                user_id
+            )
+            name = member.user.first_name
+        except:
+            name = f"کاربر {user_id}"
+
+        medal = medals[index - 1] if index <= 3 else f"{index}."
+
+        text += f"{medal} {name} — 🎯 {points}\n"
+
+    await update.message.reply_text(text)    
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("score", score))
+app.add_handler(CommandHandler("leaderboard", leaderboard))
 app.add_handler(CommandHandler("panel", panel))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
