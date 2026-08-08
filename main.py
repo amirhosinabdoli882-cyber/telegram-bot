@@ -695,6 +695,18 @@ async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     unban_user(user_id)
     await update.message.reply_text("✅ کاربر از بن خارج شد.")
+def get_game_stats(user_id):
+    cursor.execute("""
+        SELECT games, wins, losses, draws
+        FROM users
+        WHERE user_id = ?
+    """, (user_id,))
+
+    row = cursor.fetchone()
+
+    if row:
+        return row
+    return (0, 0, 0, 0)
 async def score(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
