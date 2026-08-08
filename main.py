@@ -58,11 +58,17 @@ CREATE TABLE IF NOT EXISTS banned_users (
 
 conn.commit()
 
-def save_user(user_id):
+def save_user(user_id, first_name):
     cursor.execute(
-        "INSERT OR IGNORE INTO users (user_id) VALUES (?)",
-        (user_id,)
+        "INSERT OR IGNORE INTO users (user_id, first_name) VALUES (?, ?)",
+        (user_id, first_name)
     )
+
+    cursor.execute(
+        "UPDATE users SET first_name=? WHERE user_id=?",
+        (first_name, user_id)
+    )
+
     conn.commit()
 
 def get_users():
