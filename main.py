@@ -21,7 +21,11 @@ CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY
 )
 """)
-
+try:
+    cursor.execute("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0")
+    conn.commit()
+except sqlite3.OperationalError:
+    pass
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS banned_users (
     user_id INTEGER PRIMARY KEY
@@ -37,11 +41,20 @@ def save_user(user_id):
         (user_id,)
     )
     conn.commit()
+def change_points(user_id, amount):
+    cursor.execute(
+        "UPDATE users SET points = COALESCE(points, 0) + ? WHERE user_id = ?",
+        (amount, user_id)
+    )
+    conn.commit()
 
-def get_users():
-    cursor.execute("SELECT user_id FROM users")
-    return [row[0] for row in cursor.fetchall()]
-
+def get_points(user_id):
+    cursor.execute(
+        "SELECT points FROM users WHERE user_id=?",
+        (user_id,)
+    )
+    row = cursor.fetchone()
+    return row[0] if row else 0    
 
 def ban_user(user_id):
     cursor.execute(
@@ -191,12 +204,37 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     creator_score = creator_dice.dice.value
     accepter_score = accepter_dice.dice.value
 
-    if creator_score > accepter_score:
-        result = f"🏆 {creator_name} برنده شد!"
+        if creator_score > accepter_score:
+        change_points(game["creator_id"], 3)
+        change_points(accepter.id, -2)
+
+        result = (
+            f"🏆 {creator_name} برنده شد!\n"
+            f"🎯 {creator_name}: +3 امتیاز\n"
+            f"💀 {accepter.first_name}: -2 امتیاز"
+        )
+
     elif accepter_score > creator_score:
-        result = f"🏆 {accepter.first_name} برنده شد!"
+        change_points(game["creator_id"], -2)
+        change_points(accepter.id, 3)
+
+        result = (
+            f"🏆 {accepter.first_name} برنده شد!\n"
+            f"🎯 {accepter.first_name}: +3 امتیاز\n"
+            f"💀 {creator_name}: -2 امتیاز"
+        )
+
     else:
-        result = "🤝 مساوی شد!"
+        change_points(game["creator_id"], 1)
+        change_points(accepter.id, 1)
+
+        result = (
+            "🤝 مساوی شد!\n"
+            "🎯 هر دو بازیکن: +1 امتیاز"
+        )
+
+    creator_points = get_points(game["creator_id"])
+    accepter_points = get_points(accepter.id)
 
     await context.bot.send_message(
         chat_id=chat_id,
@@ -204,7 +242,9 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🍀 نتیجه بازی شانس\n\n"
             f"👤 {creator_name}: 🎲 {creator_score}\n"
             f"👤 {accepter.first_name}: 🎲 {accepter_score}\n\n"
-            f"{result}"
+            f"{result}\n\n"
+            f"📊 امتیاز {creator_name}: {creator_points}\n"
+            f"📊 امتیاز {accepter.first_name}: {accepter_points}"
         )
     )
 
@@ -344,10 +384,26 @@ async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     unban_user(user_id)
     await update.message.reply_text("✅ کاربر از بن خارج شد.")
+async def score(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
 
+    if user.id not in get_users():
+        await update.message.reply_text(
+            "⛔ ابتدا ربات را استارت کنید."
+        )
+        return
+
+    points = get_points(user.id)
+
+    await update.message.reply_text(
+        f"🎯 امتیاز شما\n\n"
+        f"👤 {user.first_name}\n"
+        f"🏆 امتیاز: {points}"
+    )
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("score", score))
 app.add_handler(CommandHandler("panel", panel))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
