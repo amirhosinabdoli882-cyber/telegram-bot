@@ -366,7 +366,39 @@ async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id,
             sent_message.message_id
         )
-    )    
+    )
+async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📥 ارسال ویدئوی اینستاگرام",
+                callback_data="instagram_help"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "🏆 دیدن لیدربورد",
+                callback_data="show_leaderboard"
+            )
+        ]
+    ]
+
+    text = (
+        "🎉 خوش اومدی رفیق! 😎\n\n"
+        "✨ عضویتت با موفقیت تأیید شد.\n\n"
+        "یکی از گزینه‌های زیر رو انتخاب کن 👇"
+    )
+
+    if update.callback_query:
+        await update.callback_query.edit_message_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    else:
+        await update.message.reply_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )    
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_user(update.effective_user.id)
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
@@ -398,7 +430,7 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     if await is_member(context.bot, query.from_user.id):
-        await query.edit_message_text("✅ عضویت شما تأیید شد. خوش اومدی!")
+        await main_menu(update, context)
     else:
         await query.answer(
             "❌ هنوز عضو کانال نشدی.",
@@ -419,6 +451,70 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🎛 پنل مدیریت",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
+async def menu_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "instagram_help":
+        keyboard = [
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
+                    callback_data="back_menu"
+                )
+            ]
+        ]
+
+        await query.edit_message_text(
+            "📥 ارسال ویدئوی اینستاگرام\n\n"
+            "🔗 فقط لینک پست یا ریلز اینستاگرام رو همینجا بفرست.\n\n"
+            "🎬 ربات ویدئو رو دریافت می‌کنه و برات ارسال می‌کنه.\n"
+            "🎵 صدای ویدئو هم جداگانه برات فرستاده میشه.",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+    elif query.data == "show_leaderboard":
+        cursor.execute("""
+            SELECT first_name, points
+            FROM users
+            ORDER BY points DESC
+            LIMIT 30
+        """)
+
+        users = cursor.fetchall()
+
+        if not users:
+            text = "🏆 هنوز کسی امتیازی ندارد."
+        else:
+            text = "🏆 جدول ۳۰ نفر برتر\n\n"
+            medals = ["🥇", "🥈", "🥉"]
+
+            for index, (name, points) in enumerate(users, start=1):
+                name = name or "کاربر"
+
+                if index <= 3:
+                    rank = medals[index - 1]
+                else:
+                    rank = f"{index}."
+
+                text += f"{rank} {name} — 🎯 {points}\n"
+
+        keyboard = [
+            [
+                InlineKeyboardButton(
+                    "🔙 بازگشت",
+                    callback_data="back_menu"
+                )
+            ]
+        ]
+
+        await query.edit_message_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+    elif query.data == "back_menu":
+        await main_menu(update, context)    
 async def admin_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global maintenance_mode
 
@@ -591,7 +687,12 @@ app.add_handler(
         luck_game
     )
 )
-
+app.add_handler(
+    CallbackQueryHandler(
+        menu_buttons,
+        pattern="^(instagram_help|show_leaderboard|back_menu)$"
+    )
+)
 app.add_handler(MessageHandler(filters.TEXT, broadcast_message))
 
 print("Bot is running...")
