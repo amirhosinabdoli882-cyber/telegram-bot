@@ -1,4 +1,4 @@
-import os
+import 
 import sqlite3
 import asyncio
 import re
@@ -337,18 +337,18 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     creator_score = creator_dice.dice.value
     accepter_score = accepter_dice.dice.value
 
-   if creator_score > accepter_score:
-    change_points(game["creator_id"], 3)
-    change_points(accepter.id, -2)
+    if creator_score > accepter_score:
+        change_points(game["creator_id"], 3)
+        change_points(accepter.id, -2)
 
-    update_game_stats(game["creator_id"], "win")
-    update_game_stats(accepter.id, "loss")
+        update_game_stats(game["creator_id"], "win")
+        update_game_stats(accepter.id, "loss")
 
-    result = (
-        f"🏆 {creator_name} برنده شد!\n"
-        f"🎯 {creator_name}: +3 امتیاز\n"
-        f"💀 {accepter.first_name}: -2 امتیاز"
-    ) 
+        result = (
+            f"🏆 {creator_name} برنده شد!\n"
+            f"🎯 {creator_name}: +3 امتیاز\n"
+            f"💀 {accepter.first_name}: -2 امتیاز"
+        )   
 
     elif accepter_score > creator_score:
         change_points(game["creator_id"], -2)
