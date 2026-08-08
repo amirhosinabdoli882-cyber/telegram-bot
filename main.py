@@ -29,13 +29,6 @@ try:
     cursor.execute("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0")
 except sqlite3.OperationalError:
     pass
-
-try:
-    cursor.execute("ALTER TABLE users ADD COLUMN first_name TEXT")
-except sqlite3.OperationalError:
-    pass
-
-conn.commit()
 try:
     cursor.execute(
         "ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0"
@@ -46,6 +39,34 @@ except sqlite3.OperationalError:
 try:
     cursor.execute(
         "ALTER TABLE users ADD COLUMN first_name TEXT"
+    )
+except sqlite3.OperationalError:
+    pass
+
+try:
+    cursor.execute(
+        "ALTER TABLE users ADD COLUMN games INTEGER DEFAULT 0"
+    )
+except sqlite3.OperationalError:
+    pass
+
+try:
+    cursor.execute(
+        "ALTER TABLE users ADD COLUMN wins INTEGER DEFAULT 0"
+    )
+except sqlite3.OperationalError:
+    pass
+
+try:
+    cursor.execute(
+        "ALTER TABLE users ADD COLUMN losses INTEGER DEFAULT 0"
+    )
+except sqlite3.OperationalError:
+    pass
+
+try:
+    cursor.execute(
+        "ALTER TABLE users ADD COLUMN draws INTEGER DEFAULT 0"
     )
 except sqlite3.OperationalError:
     pass
