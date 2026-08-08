@@ -87,7 +87,6 @@ async def delete_luck_game(context, chat_id, message_id):
         except:
             pass
 
-
 async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
         return
@@ -98,23 +97,21 @@ async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     chat_id = update.effective_chat.id
 
+    if user.id not in get_users():
+        await update.message.reply_text(
+            "⛔ برای استفاده از بازی شانس، ابتدا ربات را استارت کنید."
+        )
+        return
+    if not await is_member(context.bot, user.id):
+        await update.message.reply_text(
+            "⛔ برای بازی شانس باید ابتدا عضو کانال شوید."
+        )
+        return
     if chat_id in gamble_games:
         await update.message.reply_text(
             "🍀 یک بازی شانس همین الان در این گروه در حال انتظار است."
         )
         return
-
-    gamble_games[chat_id] = {
-        "creator_id": user.id,
-        "creator_name": user.first_name
-    }
-
-    keyboard = [
-        [InlineKeyboardButton(
-            "🎲 قبول بازی",
-            callback_data=f"luck_accept_{user.id}"
-        )]
-    ]
 
     message = await update.message.reply_text(
         f"🍀 {user.first_name} بازی شانس پیشنهاد داد!\n\n"
@@ -141,6 +138,20 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     chat_id = query.message.chat_id
     accepter = query.from_user
+    
+        if accepter.id not in get_users():
+        await query.answer(
+            "⛔ ابتدا ربات را استارت کنید.",
+            show_alert=True
+        )
+        return
+
+    if not await is_member(context.bot, accepter.id):
+        await query.answer(
+            "⛔ برای بازی باید عضو کانال باشید.",
+            show_alert=True
+        )
+        return
 
     if chat_id not in gamble_games:
         await query.answer(
