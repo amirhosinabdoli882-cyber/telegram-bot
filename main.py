@@ -154,11 +154,9 @@ async def instagram_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     except Exception as e:
-        await update.message.reply_text(
-            "❌ دریافت ویدئو انجام نشد.\n"
-            "ممکنه لینک خصوصی یا نامعتبر باشه."
-        )
-
+    await update.message.reply_text(
+        f"❌ خطا:\n{str(e)[:3000]}"
+    )
     finally:
         if temp_dir:
             import shutil
