@@ -1,4 +1,4 @@
-import os
+import o
 import sqlite3
 import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -34,13 +34,17 @@ CREATE TABLE IF NOT EXISTS banned_users (
 
 conn.commit()
 
-
 def save_user(user_id):
     cursor.execute(
         "INSERT OR IGNORE INTO users (user_id) VALUES (?)",
         (user_id,)
     )
     conn.commit()
+
+def get_users():
+    cursor.execute("SELECT user_id FROM users")
+    return [row[0] for row in cursor.fetchall()]
+
 def change_points(user_id, amount):
     cursor.execute(
         "UPDATE users SET points = COALESCE(points, 0) + ? WHERE user_id = ?",
@@ -211,7 +215,64 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     del gamble_games[chat_id]
-    
+async def luck_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if maintenance_mode and update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text(
+            "🛠 ربات در حال تعمیر و بروزرسانی است.\nلطفاً بعداً دوباره تلاش کنید."
+        )
+        return
+
+    if update.effective_chat.type not in ["group", "supergroup"]:
+        return
+
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+
+    if user.id not in get_users():
+        await update.message.reply_text(
+            "⛔ برای بازی شانس ابتدا ربات را استارت کنید."
+        )
+        return
+
+    if not await is_member(context.bot, user.id):
+        await update.message.reply_text(
+            "⛔ برای بازی شانس باید ابتدا عضو کانال باشید."
+        )
+        return
+
+    if chat_id in gamble_games:
+        await update.message.reply_text(
+            "🍀 یک بازی شانس همین الان در این گروه در حال انتظار است."
+        )
+        return
+
+    gamble_games[chat_id] = {
+        "creator_id": user.id,
+        "creator_name": user.first_name
+    }
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🎲 قبول بازی",
+                callback_data=f"luck_accept_{user.id}"
+            )
+        ]
+    ]
+
+    sent_message = await update.message.reply_text(
+        f"🍀 {user.first_name} بازی شانس پیشنهاد داد!\n\n"
+        "چه کسی قبول می‌کند؟",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+    asyncio.create_task(
+        delete_luck_game(
+            context,
+            chat_id,
+            sent_message.message_id
+        )
+    )    
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_user(update.effective_user.id)
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
