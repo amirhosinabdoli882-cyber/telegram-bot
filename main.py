@@ -362,16 +362,16 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     else:
-    change_points(game["creator_id"], 1)
-    change_points(accepter.id, 1)
+        change_points(game["creator_id"], 1)
+        change_points(accepter.id, 1)
 
-    update_game_stats(game["creator_id"], "draw")
-    update_game_stats(accepter.id, "draw")
+        update_game_stats(game["creator_id"], "draw")
+        update_game_stats(accepter.id, "draw")
 
-    result = (
-        "🤝 مساوی شد!\n"
-        "🎯 هر دو بازیکن: +1 امتیاز"
-    )
+        result = (
+            "🤝 مساوی شد!\n"
+            "🎯 هر دو بازیکن: +1 امتیاز"
+        )
 
     creator_points = get_points(game["creator_id"])
     accepter_points = get_points(accepter.id)
