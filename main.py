@@ -453,6 +453,12 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 callback_data="instagram_help"
             )
         ],
+   [
+    InlineKeyboardButton(
+        "👤 پروفایل من",
+        callback_data="profile"
+    )
+], 
         [
             InlineKeyboardButton(
                 "🏆 دیدن لیدربورد",
