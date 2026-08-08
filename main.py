@@ -139,7 +139,7 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = query.message.chat_id
     accepter = query.from_user
     
-        if accepter.id not in get_users():
+    if accepter.id not in get_users():
         await query.answer(
             "⛔ ابتدا ربات را استارت کنید.",
             show_alert=True
