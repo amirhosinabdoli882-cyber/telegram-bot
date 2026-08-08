@@ -201,10 +201,10 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
         emoji="🎲"
     )
 
-    creator_score = creator_dice.dice.value
+        creator_score = creator_dice.dice.value
     accepter_score = accepter_dice.dice.value
 
-        if creator_score > accepter_score:
+    if creator_score > accepter_score:
         change_points(game["creator_id"], 3)
         change_points(accepter.id, -2)
 
@@ -217,6 +217,24 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif accepter_score > creator_score:
         change_points(game["creator_id"], -2)
         change_points(accepter.id, 3)
+
+        result = (
+            f"🏆 {accepter.first_name} برنده شد!\n"
+            f"🎯 {accepter.first_name}: +3 امتیاز\n"
+            f"💀 {creator_name}: -2 امتیاز"
+        )
+
+    else:
+        change_points(game["creator_id"], 1)
+        change_points(accepter.id, 1)
+
+        result = (
+            "🤝 مساوی شد!\n"
+            "🎯 هر دو بازیکن: +1 امتیاز"
+        )
+
+    creator_points = get_points(game["creator_id"])
+    accepter_points = get_points(accepter.id)
 
         result = (
             f"🏆 {accepter.first_name} برنده شد!\n"
