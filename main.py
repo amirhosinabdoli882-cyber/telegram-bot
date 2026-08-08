@@ -4,6 +4,7 @@ import asyncio
 import re
 import tempfile
 import yt_dlp
+import subprocess
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -148,32 +149,35 @@ async def instagram_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         video_path, temp_dir = download_instagram(url)
 
+        # ارسال ویدئو
         with open(video_path, "rb") as video:
             await update.message.reply_video(
                 video=video,
                 caption="🎬 ویدئو"
             )
 
-        # استخراج صدای ویدئو
+        # استخراج صدا با FFmpeg
         audio_path = os.path.splitext(video_path)[0] + ".mp3"
 
-        audio_opts = {
-            "format": "bestaudio/best",
-            "outtmpl": audio_path,
-            "noplaylist": True,
-            "quiet": True,
-            "postprocessors": [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192",
-                }
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                video_path,
+                "-vn",
+                "-codec:a",
+                "libmp3lame",
+                "-b:a",
+                "192k",
+                audio_path
             ],
-        }
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
-        with yt_dlp.YoutubeDL(audio_opts) as ydl:
-            ydl.download([url])
-
+        # ارسال صدا
         with open(audio_path, "rb") as audio:
             await update.message.reply_audio(
                 audio=audio,
