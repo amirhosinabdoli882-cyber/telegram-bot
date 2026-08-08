@@ -1,4 +1,4 @@
-import o
+import os
 import sqlite3
 import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
