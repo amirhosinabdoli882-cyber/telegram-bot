@@ -707,6 +707,36 @@ def get_game_stats(user_id):
     if row:
         return row
     return (0, 0, 0, 0)
+async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+
+    if user.id not in get_users():
+        await update.message.reply_text(
+            "⛔ ابتدا ربات را استارت کنید."
+        )
+        return
+
+    points = get_points(user.id)
+    games, wins, losses, draws = get_game_stats(user.id)
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM users
+        WHERE points > ?
+    """, (points,))
+
+    rank = cursor.fetchone()[0] + 1
+
+    await update.message.reply_text(
+        f"👤 پروفایل شما\n\n"
+        f"🆔 آیدی: {user.id}\n"
+        f"🎯 امتیاز: {points}\n"
+        f"🏆 رتبه: {rank}\n\n"
+        f"🎲 تعداد بازی: {games}\n"
+        f"🏆 برد: {wins}\n"
+        f"💀 باخت: {losses}\n"
+        f"🤝 مساوی: {draws}"
+    )
 async def score(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
