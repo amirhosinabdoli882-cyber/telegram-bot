@@ -27,9 +27,29 @@ CREATE TABLE IF NOT EXISTS users (
 """)
 try:
     cursor.execute("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0")
-    conn.commit()
 except sqlite3.OperationalError:
     pass
+
+try:
+    cursor.execute("ALTER TABLE users ADD COLUMN first_name TEXT")
+except sqlite3.OperationalError:
+    pass
+
+conn.commit()
+try:
+    cursor.execute(
+        "ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0"
+    )
+except sqlite3.OperationalError:
+    pass
+
+try:
+    cursor.execute(
+        "ALTER TABLE users ADD COLUMN first_name TEXT"
+    )
+except sqlite3.OperationalError:
+    pass
+
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS banned_users (
     user_id INTEGER PRIMARY KEY
