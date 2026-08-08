@@ -245,6 +245,32 @@ async def instagram_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await status.delete()
         except:
             pass
+def update_game_stats(user_id, result):
+    if result == "win":
+        cursor.execute("""
+            UPDATE users
+            SET games = COALESCE(games, 0) + 1,
+                wins = COALESCE(wins, 0) + 1
+            WHERE user_id = ?
+        """, (user_id,))
+
+    elif result == "loss":
+        cursor.execute("""
+            UPDATE users
+            SET games = COALESCE(games, 0) + 1,
+                losses = COALESCE(losses, 0) + 1
+            WHERE user_id = ?
+        """, (user_id,))
+
+    elif result == "draw":
+        cursor.execute("""
+            UPDATE users
+            SET games = COALESCE(games, 0) + 1,
+                draws = COALESCE(draws, 0) + 1
+            WHERE user_id = ?
+        """, (user_id,))
+
+    conn.commit()            
 async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if maintenance_mode and update.effective_user.id != ADMIN_ID:
         await update.callback_query.answer(
@@ -311,15 +337,18 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     creator_score = creator_dice.dice.value
     accepter_score = accepter_dice.dice.value
 
-    if creator_score > accepter_score:
-        change_points(game["creator_id"], 3)
-        change_points(accepter.id, -2)
+   if creator_score > accepter_score:
+    change_points(game["creator_id"], 3)
+    change_points(accepter.id, -2)
 
-        result = (
-            f"🏆 {creator_name} برنده شد!\n"
-            f"🎯 {creator_name}: +3 امتیاز\n"
-            f"💀 {accepter.first_name}: -2 امتیاز"
-        )
+    update_game_stats(game["creator_id"], "win")
+    update_game_stats(accepter.id, "loss")
+
+    result = (
+        f"🏆 {creator_name} برنده شد!\n"
+        f"🎯 {creator_name}: +3 امتیاز\n"
+        f"💀 {accepter.first_name}: -2 امتیاز"
+    ) 
 
     elif accepter_score > creator_score:
         change_points(game["creator_id"], -2)
