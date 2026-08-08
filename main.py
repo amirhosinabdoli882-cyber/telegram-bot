@@ -353,7 +353,8 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif accepter_score > creator_score:
         change_points(game["creator_id"], -2)
         change_points(accepter.id, 3)
-
+        update_game_stats(game["creator_id"], "loss")
+        update_game_stats(accepter.id, "win")
         result = (
             f"🏆 {accepter.first_name} برنده شد!\n"
             f"🎯 {accepter.first_name}: +3 امتیاز\n"
@@ -363,7 +364,8 @@ async def luck_accept(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         change_points(game["creator_id"], 1)
         change_points(accepter.id, 1)
-
+    update_game_stats(game["creator_id"], "draw")
+    update_game_stats(accepter.id, "draw")
         result = (
             "🤝 مساوی شد!\n"
             "🎯 هر دو بازیکن: +1 امتیاز"
