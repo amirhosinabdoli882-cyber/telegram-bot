@@ -398,33 +398,52 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             text,
             reply_markup=InlineKeyboardMarkup(keyboard)
-        )    
+        )
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    save_user(update.effective_user.id)
-    if maintenance_mode and update.effective_user.id != ADMIN_ID:
+    user = update.effective_user
+
+    save_user(
+        user.id,
+        user.first_name
+    )
+
+    if maintenance_mode and user.id != ADMIN_ID:
         await update.message.reply_text(
-            "🛠 ربات در حال تعمیر و بروزرسانی است.\nلطفاً بعداً دوباره تلاش کنید."
+            "🛠 ربات در حال تعمیر و بروزرسانی است.\n"
+            "لطفاً بعداً دوباره تلاش کنید."
         )
         return
-    if is_banned(update.effective_user.id):
+
+    if is_banned(user.id):
         await update.message.reply_text(
             "⛔ شما از استفاده از این ربات مسدود شده‌اید."
         )
         return
 
     keyboard = [
-        [InlineKeyboardButton("📢 عضویت در کانال", url="https://t.me/Axyoy")],
-        [InlineKeyboardButton("✅ عضو شدم", callback_data="check")]
+        [
+            InlineKeyboardButton(
+                "📢 عضویت در کانال",
+                url="https://t.me/Axyoy"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "✅ عضو شدم",
+                callback_data="check"
+            )
+        ]
     ]
 
-    if await is_member(context.bot, update.effective_user.id):
-        await update.message.reply_text("✅ خوش اومدی، عضویتت تأیید شد.")
+    if await is_member(context.bot, user.id):
+        await main_menu(update, context)
     else:
         await update.message.reply_text(
-            "سلام 👋\n\nلطفاً ابتدا عضو کانال شوید.",
+            "👋 سلام رفیق!\n\n"
+            "برای استفاده از امکانات ربات، "
+            "ابتدا عضو کانال شو 👇",
             reply_markup=InlineKeyboardMarkup(keyboard)
-        )
-        
+        )        
 async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
